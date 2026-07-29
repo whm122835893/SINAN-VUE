@@ -53,10 +53,6 @@ const handlePwdChange = (index: number, value: string) => {
       pwdRefs.value[index + 1]?.focus()
     })
   }
-
-  if (next.every((d) => d !== '') && next.join('').length === 6) {
-    handleSubmit()
-  }
 }
 
 const handlePwdKeyDown = (index: number, e: KeyboardEvent) => {
@@ -199,7 +195,8 @@ const handleClose = () => {
               @keydown="handlePwdKeyDown(i, $event)"
               class="h-12 w-12 rounded-lg border-2 bg-white text-center text-lg font-bold text-ink-primary focus:outline-none transition"
               :style="{
-                borderColor: error ? '#FF4D4F' : '#EEEEEE',
+                borderColor: error ? '#FF4D4F' : digit ? '#E91E63' : '#CCCCCC',
+                boxShadow: digit ? '0 0 0 1px #E91E63' : 'none',
               }"
             />
           </div>
