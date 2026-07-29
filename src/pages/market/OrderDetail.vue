@@ -79,6 +79,11 @@ const chainAddress = computed(() => formatChainAddress(generateChainAddress(coll
 const handleBack = () => {
   router.back()
 }
+
+// 立即购买 → 待支付界面
+const handleBuy = () => {
+  router.push(`/market/${collection.value.id}/order/${order.value.id}/pending`)
+}
 </script>
 
 <template>
@@ -310,6 +315,7 @@ const handleBack = () => {
         </div>
         <button
           type="button"
+          @click="handleBuy"
           class="flex-1 h-12 text-base font-semibold text-white active:scale-[0.98]"
           style="border-radius: 8px; background-color: #FF5A7D"
         >

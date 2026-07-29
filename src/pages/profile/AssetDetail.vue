@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { Heart, ChevronDown, ChevronUp } from 'lucide-vue-next'
 import PhoneFrame from '@/components/layout/PhoneFrame.vue'
 import TopBar from '@/components/layout/TopBar.vue'
+import ConsignDialog from '@/components/ui/ConsignDialog.vue'
 
 const FavoriteBtn = defineComponent({
   setup() {
@@ -75,17 +76,28 @@ const collection = computed(() => ({
 }))
 
 const chainAddress = computed(() => formatChainAddress(generateChainAddress(collection.value.id + collection.value.serialNo)))
+
+// 寄售弹窗
+const showConsignDialog = ref(false)
+
+const handleConsign = () => {
+  showConsignDialog.value = true
+}
+
+const handleConsignSuccess = (price: number) => {
+  console.log('寄售成功，价格:', price)
+}
 </script>
 
 <template>
   <PhoneFrame bg="bg-white">
     <div
-      class="absolute inset-x-0 top-0 z-0"
+      class="absolute left-0 right-0 top-0 z-0"
+      style="height: 400px"
       :style="{
-        height: '400px',
         backgroundImage: `url(${collection.image})`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center top',
+        backgroundPosition: 'center',
         filter: 'blur(20px)',
         transform: 'scale(1.1)',
       }"
@@ -270,11 +282,23 @@ const chainAddress = computed(() => formatChainAddress(generateChainAddress(coll
     <div class="px-4 pb-4 pt-2">
       <button
         type="button"
+        @click="handleConsign"
         class="h-14 w-full rounded-2xl text-lg font-semibold text-white active:scale-95"
         style="background: #E91E63"
       >
         立即寄售
       </button>
     </div>
+
+    <!-- 寄售弹窗 -->
+    <ConsignDialog
+      :visible="showConsignDialog"
+      :collection-name="collection.name"
+      :collection-image="collection.image"
+      :collection-no="`#${collection.no}`"
+      :suggest-price="288"
+      @close="showConsignDialog = false"
+      @success="handleConsignSuccess"
+    />
   </PhoneFrame>
 </template>
