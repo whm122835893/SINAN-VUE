@@ -154,6 +154,18 @@ const handlePriceInput = (e: Event) => {
   price.value = filtered
 }
 
+// 手续费 3%，向下取两位小数
+const feePercent = 0.03
+const consignFee = computed(() => {
+  const p = parseFloat(price.value) || 0
+  return Math.floor(p * feePercent * 100) / 100
+})
+// 实际到手
+const actualReceive = computed(() => {
+  const p = parseFloat(price.value) || 0
+  return Math.floor((p - consignFee.value) * 100) / 100
+})
+
 const handleClose = () => {
   if (loading.value) return
   emit('close')
@@ -226,6 +238,22 @@ const handleClose = () => {
           <p v-if="suggestPrice > 0" class="mt-1.5 text-xs text-ink-tertiary">
             建议价格：¥{{ suggestPrice }} · 当前市场最低价
           </p>
+
+          <!-- 手续费明细 -->
+          <div class="mt-3 rounded-lg px-4 py-3" style="background: #FFF8F0">
+            <div class="flex items-center justify-between py-1">
+              <span class="text-sm text-ink-secondary">寄售价格</span>
+              <span class="text-sm font-medium text-ink-primary">¥{{ price || '0.00' }}</span>
+            </div>
+            <div class="flex items-center justify-between py-1" style="border-top: 1px dashed #F0E0C8; margin-top: 4px; padding-top: 8px">
+              <span class="text-sm text-ink-secondary">平台手续费 (3%)</span>
+              <span class="text-sm font-medium text-fn-danger">- ¥{{ consignFee.toFixed(2) }}</span>
+            </div>
+            <div class="flex items-center justify-between py-1 mt-1">
+              <span class="text-sm font-semibold text-ink-primary">实际到手</span>
+              <span class="text-lg font-bold text-brand-magenta">¥{{ actualReceive.toFixed(2) }}</span>
+            </div>
+          </div>
         </div>
 
         <!-- 交易密码 -->

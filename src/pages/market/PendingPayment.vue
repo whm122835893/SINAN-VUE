@@ -221,9 +221,8 @@ const handleExpiredAction = () => {
   router.back()
 }
 
-// 模拟服务费
-const serviceFee = computed(() => Math.floor(order.value.price * 0.01))
-const totalPrice = computed(() => order.value.price + serviceFee.value)
+// 购买方不收取服务费，实付 = 藏品价格
+const totalPrice = computed(() => order.value.price)
 </script>
 
 <template>
@@ -342,8 +341,8 @@ const totalPrice = computed(() => order.value.price + serviceFee.value)
           <span class="text-sm font-medium text-ink-primary">¥{{ order.price }}</span>
         </div>
         <div class="flex items-center justify-between py-2" style="border-top: 1px solid #F5F5F5">
-          <span class="text-sm text-ink-secondary">服务费</span>
-          <span class="text-sm font-medium text-ink-primary">¥{{ serviceFee }}</span>
+          <span class="text-sm text-ink-secondary">购买方服务费</span>
+          <span class="text-sm font-medium text-fn-success">¥0.00 (已免)</span>
         </div>
         <div class="flex items-center justify-between py-2" style="border-top: 1px solid #F5F5F5">
           <span class="text-sm font-semibold text-ink-primary">实付金额</span>
