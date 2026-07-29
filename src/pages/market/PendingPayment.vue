@@ -100,15 +100,23 @@ const selectedMethod = ref('huifu')
 
 // 密码弹窗
 const showPasswordModal = ref(false)
-const password = ref<string[]>(['', '', '', '', '', ''])
+const passwordStr = ref('')
 const pwdRefs = ref<(HTMLInputElement | null)[]>([])
 const pwdError = ref('')
 const showSuccess = ref(false)
 
+const passwordArr = computed(() => {
+  const arr = passwordStr.value.split('')
+  while (arr.length < 6) arr.push('')
+  return arr.slice(0, 6)
+})
+
+const activePwdIndex = computed(() => Math.min(passwordStr.value.length, 5))
+
 const openPasswordModal = () => {
   if (isExpired.value) return
   showPasswordModal.value = true
-  password.value = ['', '', '', '', '', '']
+  passwordStr.value = ''
   pwdError.value = ''
   nextTick(() => {
     pwdRefs.value[0]?.focus()
@@ -117,42 +125,71 @@ const openPasswordModal = () => {
 
 const closePasswordModal = () => {
   showPasswordModal.value = false
-  password.value = ['', '', '', '', '', '']
+  passwordStr.value = ''
   pwdError.value = ''
 }
 
-const handlePwdChange = (index: number, value: string) => {
-  if (!/^\d?$/.test(value)) return
-  const next = [...password.value]
-  next[index] = value
-  password.value = next
-  pwdError.value = ''
+const handlePwdInput = (index: number, e: Event) => {
+  const target = e.target as HTMLInputElement
+  const inputVal = target.value.replace(/\D/g, '')
 
-  if (value && index < 5) {
+  if (!inputVal) {
+    passwordStr.value = passwordStr.value.slice(0, index)
     nextTick(() => {
-      pwdRefs.value[index + 1]?.focus()
+      target.value = ''
+      pwdRefs.value[Math.min(index, 5)]?.focus()
     })
+    return
   }
 
-  // 输入完6位自动验证
-  if (next.every((d) => d !== '') && next.join('').length === 6) {
-    verifyPassword()
-  }
+  const newChars = inputVal.split('')
+  const before = passwordStr.value.slice(0, index)
+  const after = passwordStr.value.slice(index + newChars.length)
+  const combined = (before + newChars.join('') + after).slice(0, 6)
+  passwordStr.value = combined
+
+  pwdError.value = ''
+  target.value = ''
+
+  nextTick(() => {
+    if (combined.length < 6) {
+      pwdRefs.value[Math.min(combined.length, 5)]?.focus()
+    } else {
+      verifyPassword()
+      (document.activeElement as HTMLElement)?.blur()
+    }
+  })
 }
 
 const handlePwdKeyDown = (index: number, e: KeyboardEvent) => {
-  if (e.key === 'Backspace' && !password.value[index] && index > 0) {
-    const next = [...password.value]
-    next[index - 1] = ''
-    password.value = next
+  if (e.key === 'Backspace') {
+    if (index > 0 && !passwordStr.value[index]) {
+      passwordStr.value = passwordStr.value.slice(0, -1)
+      nextTick(() => {
+        pwdRefs.value[index - 1]?.focus()
+      })
+      e.preventDefault()
+    }
+  } else if (e.key === 'ArrowLeft' && index > 0) {
+    nextTick(() => pwdRefs.value[index - 1]?.focus())
+    e.preventDefault()
+  } else if (e.key === 'ArrowRight' && index < 5) {
+    nextTick(() => pwdRefs.value[index + 1]?.focus())
+    e.preventDefault()
+  }
+}
+
+const handlePwdFocus = (index: number) => {
+  if (index !== passwordStr.value.length && passwordStr.value.length < 6) {
     nextTick(() => {
-      pwdRefs.value[index - 1]?.focus()
+      pwdRefs.value[passwordStr.value.length]?.focus()
     })
   }
 }
 
 const verifyPassword = () => {
-  const pwd = password.value.join('')
+  const pwd = passwordStr.value
+  if (pwd.length !== 6) return
   // 模拟：密码为 123456 时正确
   setTimeout(() => {
     if (pwd === '123456') {
@@ -164,7 +201,7 @@ const verifyPassword = () => {
       }
     } else {
       pwdError.value = '支付密码错误，请重新输入'
-      password.value = ['', '', '', '', '', '']
+      passwordStr.value = ''
       nextTick(() => {
         pwdRefs.value[0]?.focus()
       })
@@ -401,18 +438,31 @@ const totalPrice = computed(() => order.value.price + serviceFee.value)
 
           <div class="flex justify-between gap-2 mb-4">
             <input
-              v-for="(digit, i) in password"
+              v-for="(digit, i) in passwordArr"
               :key="i"
               :ref="(el) => { pwdRefs[i] = el as HTMLInputElement | null }"
               type="password"
               inputmode="numeric"
-              maxlength="1"
+              maxlength="6"
               :value="digit"
-              @input="handlePwdChange(i, ($event.target as HTMLInputElement).value)"
+              @input="handlePwdInput(i, $event)"
               @keydown="handlePwdKeyDown(i, $event)"
+              @focus="handlePwdFocus(i)"
               class="h-14 w-12 rounded-lg border-2 bg-white text-center text-xl font-bold text-ink-primary focus:outline-none transition"
               :style="{
-                borderColor: pwdError ? '#FF4D4F' : '#EEEEEE',
+                borderColor: pwdError
+                  ? '#FF4D4F'
+                  : digit
+                    ? '#E91E63'
+                    : i === activePwdIndex
+                      ? '#888888'
+                      : '#999999',
+                boxShadow: digit
+                  ? '0 0 0 1px #E91E63'
+                  : i === activePwdIndex
+                    ? '0 0 0 1px #888888'
+                    : 'none',
+                borderWidth: '2px',
               }"
             />
           </div>

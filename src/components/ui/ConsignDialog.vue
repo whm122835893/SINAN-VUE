@@ -23,7 +23,7 @@ const emit = defineEmits<{
 }>()
 
 const price = ref('')
-const password = ref<string[]>(['', '', '', '', '', ''])
+const passwordStr = ref('')
 const pwdRefs = ref<(HTMLInputElement | null)[]>([])
 const error = ref('')
 const loading = ref(false)
@@ -34,34 +34,83 @@ watch(
   (val) => {
     if (val) {
       price.value = ''
-      password.value = ['', '', '', '', '', '']
+      passwordStr.value = ''
       error.value = ''
       showSuccess.value = false
+      nextTick(() => {
+        pwdRefs.value[0]?.focus()
+      })
     }
   },
 )
 
-const handlePwdChange = (index: number, value: string) => {
-  if (!/^\d?$/.test(value)) return
-  const next = [...password.value]
-  next[index] = value
-  password.value = next
-  error.value = ''
+const passwordArr = computed(() => {
+  const arr = passwordStr.value.split('')
+  while (arr.length < 6) arr.push('')
+  return arr.slice(0, 6)
+})
 
-  if (value && index < 5) {
+const activeIndex = computed(() => Math.min(passwordStr.value.length, 5))
+
+const handlePwdInput = (index: number, e: Event) => {
+  const target = e.target as HTMLInputElement
+  const inputVal = target.value.replace(/\D/g, '')
+
+  if (!inputVal) {
+    // 全部清空
+    passwordStr.value = passwordStr.value.slice(0, index)
     nextTick(() => {
-      pwdRefs.value[index + 1]?.focus()
+      target.value = ''
+      pwdRefs.value[Math.min(index, 5)]?.focus()
     })
+    return
   }
+
+  // 新输入的字符
+  const newChars = inputVal.split('')
+  // 将新字符从当前位置插入
+  const before = passwordStr.value.slice(0, index)
+  const after = passwordStr.value.slice(index + newChars.length)
+  const combined = (before + newChars.join('') + after).slice(0, 6)
+  passwordStr.value = combined
+
+  error.value = ''
+  target.value = ''
+
+  nextTick(() => {
+    const nextIdx = Math.min(combined.length, 5)
+    if (combined.length < 6) {
+      pwdRefs.value[nextIdx]?.focus()
+    } else {
+      (document.activeElement as HTMLElement)?.blur()
+    }
+  })
 }
 
 const handlePwdKeyDown = (index: number, e: KeyboardEvent) => {
-  if (e.key === 'Backspace' && !password.value[index] && index > 0) {
-    const next = [...password.value]
-    next[index - 1] = ''
-    password.value = next
+  if (e.key === 'Backspace') {
+    if (index > 0 && !passwordStr.value[index]) {
+      // 当前位置为空，删除上一个
+      passwordStr.value = passwordStr.value.slice(0, -1)
+      nextTick(() => {
+        pwdRefs.value[index - 1]?.focus()
+      })
+      e.preventDefault()
+    }
+  } else if (e.key === 'ArrowLeft' && index > 0) {
+    nextTick(() => pwdRefs.value[index - 1]?.focus())
+    e.preventDefault()
+  } else if (e.key === 'ArrowRight' && index < 5) {
+    nextTick(() => pwdRefs.value[index + 1]?.focus())
+    e.preventDefault()
+  }
+}
+
+const handlePwdFocus = (index: number) => {
+  // 聚焦时自动将光标调整到当前实际长度的位置
+  if (index !== passwordStr.value.length && passwordStr.value.length < 6) {
     nextTick(() => {
-      pwdRefs.value[index - 1]?.focus()
+      pwdRefs.value[passwordStr.value.length]?.focus()
     })
   }
 }
@@ -72,7 +121,7 @@ const handleSubmit = () => {
     error.value = '请输入有效的寄售价格'
     return
   }
-  const pwd = password.value.join('')
+  const pwd = passwordStr.value
   if (pwd.length !== 6) {
     error.value = '请输入6位交易密码'
     return
@@ -90,7 +139,7 @@ const handleSubmit = () => {
       }, 1800)
     } else {
       error.value = '交易密码错误，请重新输入'
-      password.value = ['', '', '', '', '', '']
+      passwordStr.value = ''
       nextTick(() => {
         pwdRefs.value[0]?.focus()
       })
@@ -184,19 +233,27 @@ const handleClose = () => {
           <label class="mb-2 block text-sm font-medium text-ink-primary">交易密码</label>
           <div class="flex justify-between gap-2">
             <input
-              v-for="(digit, i) in password"
+              v-for="(digit, i) in passwordArr"
               :key="i"
               :ref="(el) => { pwdRefs[i] = el as HTMLInputElement | null }"
               type="password"
               inputmode="numeric"
-              maxlength="1"
+              maxlength="6"
               :value="digit"
-              @input="handlePwdChange(i, ($event.target as HTMLInputElement).value)"
+              @input="handlePwdInput(i, $event)"
               @keydown="handlePwdKeyDown(i, $event)"
+              @focus="handlePwdFocus(i)"
               class="h-12 w-12 rounded-lg border-2 bg-white text-center text-lg font-bold text-ink-primary focus:outline-none transition"
               :style="{
-                borderColor: error ? '#FF4D4F' : digit ? '#E91E63' : '#CCCCCC',
-                boxShadow: digit ? '0 0 0 1px #E91E63' : 'none',
+                borderColor: error
+                  ? '#FF4D4F'
+                  : digit
+                    ? '#E91E63'
+                    : i === activeIndex
+                      ? '#888888'
+                      : '#999999',
+                boxShadow: digit ? '0 0 0 1px #E91E63' : i === activeIndex ? '0 0 0 1px #888888' : 'none',
+                borderWidth: '2px',
               }"
             />
           </div>

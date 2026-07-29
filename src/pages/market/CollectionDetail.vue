@@ -93,8 +93,8 @@ const isDelisted = computed(() => orderList.value.length === 0)
         backgroundPosition: 'center',
         filter: 'blur(10px)',
         transform: 'scale(1.15)',
-        maskImage: 'linear-gradient(to bottom, #000 80%, transparent 100%)',
-        WebkitMaskImage: 'linear-gradient(to bottom, #000 80%, transparent 100%)',
+        maskImage: 'linear-gradient(to bottom, #000 40%, transparent 100%)',
+        WebkitMaskImage: 'linear-gradient(to bottom, #000 40%, transparent 100%)',
       }"
     />
     <div class="relative z-20 flex h-12 items-center justify-between px-4 pt-2">
