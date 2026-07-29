@@ -86,13 +86,15 @@ const isDelisted = computed(() => orderList.value.length === 0)
   <PhoneFrame bg="bg-white">
     <div
       class="absolute left-0 right-0 top-0"
-      style="height: 220px"
+      style="height: 230px"
       :style="{
         backgroundImage: `url(${collection.image})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         filter: 'blur(10px)',
         transform: 'scale(1.15)',
+        maskImage: 'linear-gradient(to bottom, #000 80%, transparent 100%)',
+        WebkitMaskImage: 'linear-gradient(to bottom, #000 80%, transparent 100%)',
       }"
     />
     <div class="relative z-20 flex h-12 items-center justify-between px-4 pt-2">

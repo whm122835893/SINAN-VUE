@@ -92,12 +92,12 @@ const handleConsignSuccess = (price: number) => {
 <template>
   <PhoneFrame bg="bg-white">
     <div
-      class="absolute inset-x-0 top-0 z-0"
+      class="absolute left-0 right-0 top-0"
+      style="height: 400px"
       :style="{
-        height: '400px',
         backgroundImage: `url(${collection.image})`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center top',
+        backgroundPosition: 'center',
         filter: 'blur(20px)',
         transform: 'scale(1.1)',
       }"
