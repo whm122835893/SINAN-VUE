@@ -65,6 +65,21 @@ const handleBack = () => {
 const handleOrderClick = (itemId: string) => {
   router.push(`/market/${collection.value.id}/order/${itemId}`)
 }
+
+// 购买 → 待支付界面
+const handleBuy = (itemId: string) => {
+  router.push(`/market/${collection.value.id}/order/${itemId}/pending`)
+}
+
+// 快捷购买 → 最低价订单待支付
+const handleQuickBuy = () => {
+  if (orderList.value.length === 0) return
+  const cheapest = orderList.value[0]
+  router.push(`/market/${collection.value.id}/order/${cheapest.id}/pending`)
+}
+
+// 模拟是否退市（无挂单）
+const isDelisted = computed(() => orderList.value.length === 0)
 </script>
 
 <template>
@@ -196,62 +211,78 @@ const handleOrderClick = (itemId: string) => {
         </div>
 
         <template v-if="tab === 'orders' && subTab === 'sell'">
-          <div class="flex items-center px-4 py-2 text-xs text-ink-tertiary">
-            <span class="text-left">藏品</span>
-            <span class="ml-auto flex items-center gap-0.5 text-right">
-              价格
-              <ChevronDown class="h-3 w-3" />
-            </span>
+          <!-- 已退市状态 -->
+          <div v-if="isDelisted" class="flex flex-col items-center justify-center py-16">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full" style="background: #F5F5F5">
+              <svg class="h-9 w-9" viewBox="0 0 24 24" fill="none" stroke="#999999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+              </svg>
+            </div>
+            <p class="mt-4 text-base font-semibold text-ink-secondary">已退市</p>
+            <p class="mt-1 text-sm text-ink-tertiary">该藏品暂无挂单</p>
           </div>
 
-          <div class="px-4 pb-4">
-            <div
-              v-for="item in orderList"
-              :key="item.id"
-              class="flex items-center py-3 cursor-pointer"
-              style="border-bottom: 1px solid #F5F5F5"
-              @click="handleOrderClick(item.id)"
-            >
+          <!-- 挂单列表 -->
+          <template v-else>
+            <div class="flex items-center px-4 py-2 text-xs text-ink-tertiary">
+              <span class="text-left">藏品</span>
+              <span class="ml-auto flex items-center gap-0.5 text-right">
+                价格
+                <ChevronDown class="h-3 w-3" />
+              </span>
+            </div>
+
+            <div class="px-4 pb-4">
               <div
-                class="h-12 w-12 flex-shrink-0 overflow-hidden"
-                style="border-radius: 8px"
+                v-for="item in orderList"
+                :key="item.id"
+                class="flex items-center py-3 cursor-pointer"
+                style="border-bottom: 1px solid #F5F5F5"
+                @click="handleOrderClick(item.id)"
               >
-                <img
-                  :src="collection.image"
-                  :alt="item.name"
-                  class="h-full w-full object-cover"
-                />
-              </div>
-              <div class="ml-3 flex-1 min-w-0">
                 <div
-                  class="whitespace-nowrap overflow-hidden text-ellipsis"
-                  style="font-family: PingFang SC; font-size: 15px; font-weight: 600; line-height: 21px; color: #1A1A1A"
+                  class="h-12 w-12 flex-shrink-0 overflow-hidden"
+                  style="border-radius: 8px"
                 >
-                  {{ item.name }}
+                  <img
+                    :src="collection.image"
+                    :alt="item.name"
+                    class="h-full w-full object-cover"
+                  />
                 </div>
-                <div
-                  class="mt-0.5 text-xs whitespace-nowrap overflow-hidden text-ellipsis"
-                  style="color: #8C8C8C"
-                >
-                  编号 #{{ item.no }}
+                <div class="ml-3 flex-1 min-w-0">
+                  <div
+                    class="whitespace-nowrap overflow-hidden text-ellipsis"
+                    style="font-family: PingFang SC; font-size: 15px; font-weight: 600; line-height: 21px; color: #1A1A1A"
+                  >
+                    {{ item.name }}
+                  </div>
+                  <div
+                    class="mt-0.5 text-xs whitespace-nowrap overflow-hidden text-ellipsis"
+                    style="color: #8C8C8C"
+                  >
+                    编号 #{{ item.no }}
+                  </div>
                 </div>
-              </div>
-              <div class="flex flex-col items-end gap-1">
-                <div
-                  style="font-family: PingFang SC; font-size: 17px; font-weight: 600; line-height: 24px; color: #FF5A7D"
-                >
-                  ¥{{ item.price }}
+                <div class="flex flex-col items-end gap-1">
+                  <div
+                    style="font-family: PingFang SC; font-size: 17px; font-weight: 600; line-height: 24px; color: #FF5A7D"
+                  >
+                    ¥{{ item.price }}
+                  </div>
+                  <button
+                    type="button"
+                    @click.stop="handleBuy(item.id)"
+                    class="px-3 py-0.5 text-xs font-medium text-white"
+                    style="border-radius: 12px; background-color: #FF5A7D"
+                  >
+                    购买
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  class="px-3 py-0.5 text-xs font-medium text-white"
-                  style="border-radius: 12px; background-color: #FF5A7D"
-                >
-                  购买
-                </button>
               </div>
             </div>
-          </div>
+          </template>
         </template>
 
         <div v-if="tab !== 'orders'" class="py-20 text-center text-sm text-ink-tertiary">
@@ -266,10 +297,12 @@ const handleOrderClick = (itemId: string) => {
     >
       <button
         type="button"
-        class="h-12 w-full text-base font-semibold text-white active:scale-[0.98]"
+        @click="handleQuickBuy"
+        :disabled="isDelisted"
+        class="h-12 w-full text-base font-semibold text-white active:scale-[0.98] disabled:opacity-40"
         style="border-radius: 8px; background-color: #FF5A7D"
       >
-        快捷购买
+        {{ isDelisted ? '暂无挂单' : '快捷购买' }}
       </button>
     </div>
   </PhoneFrame>

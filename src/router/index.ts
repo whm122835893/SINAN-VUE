@@ -13,6 +13,7 @@ const routes = [
   { path: '/market', component: () => import('@/pages/market/MarketList.vue') },
   { path: '/market/:id', component: () => import('@/pages/market/CollectionDetail.vue') },
   { path: '/market/:id/order/:orderId', component: () => import('@/pages/market/OrderDetail.vue') },
+  { path: '/market/:id/order/:orderId/pending', component: () => import('@/pages/market/PendingPayment.vue') },
   { path: '/discover', component: () => import('@/pages/market/Discover.vue') },
   { path: '/discover/:id', component: () => import('@/pages/market/AnnouncementDetail.vue') },
   { path: '/profile', component: () => import('@/pages/profile/Profile.vue') },
