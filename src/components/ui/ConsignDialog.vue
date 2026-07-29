@@ -160,7 +160,7 @@ const consignFee = computed(() => {
   const p = parseFloat(price.value) || 0
   return Math.floor(p * feePercent * 100) / 100
 })
-// 实际到手
+// 实际到账
 const actualReceive = computed(() => {
   const p = parseFloat(price.value) || 0
   return Math.floor((p - consignFee.value) * 100) / 100
@@ -250,7 +250,7 @@ const handleClose = () => {
               <span class="text-sm font-medium text-fn-danger">- ¥{{ consignFee.toFixed(2) }}</span>
             </div>
             <div class="flex items-center justify-between py-1 mt-1">
-              <span class="text-sm font-semibold text-ink-primary">实际到手</span>
+              <span class="text-sm font-semibold text-ink-primary">实际到账</span>
               <span class="text-lg font-bold text-brand-magenta">¥{{ actualReceive.toFixed(2) }}</span>
             </div>
           </div>
